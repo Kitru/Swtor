@@ -5,7 +5,7 @@ print("Kitru's Tank Simulator v. 1.0");
 iterations = int(input("How many iterations:"))
 duration = int(input("How many GCDs duration for each:"))
 tankMaxHp  = int(input("Tank's Max HP:"))
-global tankDef 
+global tankDef
 tankDef = float(input("Tank's Defense chance in decimal form:"))
 global tankRes
 tankRes = float(input("Tank's Resist chance in decimal form:"))
@@ -21,32 +21,36 @@ tankSelfHeal = float(input("Tank's average self healing per GCD, if any:"))
 tankAbsShield = float(input("Tank's average damage absorb shield per GCD, if any:"))
 
 basicHit = int(input("Attacker's basic attack damage:"))
-booleanParse = bool(input("Is the basic attack melee/ranged, T/F:"))
-basicHitMR = False
+booleanParse = input("Is the basic attack melee/ranged, T/F:")
 if booleanParse in ['true', '1', 't', 'True', 'T']:
         basicHitMR = True
-basicHitKE = False
-booleanParse = bool(input("Is the basic attack kinetic/energy, T/F:"))
+else:
+        basicHitMR = False
+booleanParse = input("Is the basic attack kinetic/energy, T/F:")
 if booleanParse in ['true', '1', 't', 'True', 'T']:
         basicHitKE = True
-        
+else:
+        basicHitKE = False
+
 bigHit = int(input("Attacker's big attack damage:"))
 bigHitInterval = int(input("How many GCDs pass between big attack uses:"))
-bigHitMR = False
-booleanParse = bool(input("Is the big attack melee/ranged, T/F:"))
+booleanParse = input("Is the big attack melee/ranged, T/F:")
 if booleanParse in ['true', '1', 't', 'True', 'T']:
         bigHitMR = True
-bigHitKE = False
-booleanParse = bool(input("Is the big attack kinetic/energy, T/F:"))
+else:
+        bigHitMR = False
+booleanParse = input("Is the big attack kinetic/energy, T/F:")
 if booleanParse in ['true', '1', 't', 'True', 'T']:
         bigHitKE = True
+else:
+        bigHitKE = False
 
 basicHeal = int(input("Healers' average heal amount, per GCD:"))
 bigHeal = int(input("Healers' big heal amount, per use:"))
 bigHealInterval = int(input("How often can the big heal be used, in GCDs:"))
 booleanParse = bool(input("Is allowable overhealing quantity determined by value(T) or percent(F):"))
 if booleanParse in ['true', '1', 't', 'True', 'T']:
-  overHealType = True
+	overHealType = True
 else: overHealType = False
 overHealAllowValue = 0
 overHealAllowPercentage = 0
@@ -67,24 +71,52 @@ bigHealAvail = 0
 numDeaths = 0
 lowestArray = []
 lowestLowHp = tankHp
+averageLowest = 0
 
 def attack(damage, attackType, damageType):
-	"Determines the damage of an delivered attack"
-	if attackType == True:
-		if random.random() < tankDef:
-			return 0;
-		if damageType == True:
-			if random.random() < tankShield:
-				return damage * (1 - tankAbs) * (1 - tankKEDR)
-			else:
-				return damage * (1 - tankKEDR)
-	else:
-		if random.random() < tankRes:
-			return 0
-		else:
-			return damage * (1 - tankIEDR)
+        "Determines the damage of an delivered attack"
+        if attackType == True:
+                if random.random() <= tankDef:
+                        #print("Defend, 0 damage")
+                        return 0
+                if damageType == True:
+                        if random.random() <= tankShield:
+                                #print("M/R K/E Shield, " + repr(damage * (1 - tankAbs) * (1 - tankKEDR)) + " damage")
+                                return damage * (1 - tankAbs) * (1 - tankKEDR)
+                        else:
+                                #print("M/R K/E Hit, " + repr(damage * (1 - tankKEDR)) + " damage")
+                                return damage * (1 - tankKEDR)
+                else:
+                        if random.random() <= tankShield:
+                                #print("M/R I/E Shield, " + repr(damage * (1 - tankAbs) * (1 - tankKEDR)) + " damage")
+                                return damage * (1 - tankAbs) * (1 - tankIEDR)
+                        else:
+                                #print("M/R I/E Hit, " + repr(damage * (1 - tankIEDR)) + " damage")
+                                return damage * (1 - tankIEDR)
+        else:
+                if random.random() < tankRes:
+                        #print("Resist, 0 damage")
+                        return 0
+                if damageType == True:
+                        if random.random() <= tankShield:
+                                #print("F/T K/E Shield, " + repr(damage * (1 - tankAbs) * (1 - tankKEDR)) + " damage")
+                                return damage * (1 - tankAbs) * (1 - tankKEDR)
+                        else:
+                                #print("F/T K/E Hit, " + repr(damage * (1 - tankKEDR)) + " damage")
+                                return damage * (1 - tankKEDR)
+                else:
+                        #print("F/T I/E Hit, " + repr(damage * (1 - tankIEDR)) + " damage")
+                        return damage * (1 - tankIEDR)
 
 for i in range (0, iterations):
+        time = 0
+        dead = False
+        tankHp = tankMaxHp
+        lowestHp = tankMaxHp
+        hitAction = 0
+        healAction = 0
+        nextHealAction = 0
+        bigHealAvail = 0
         while time < duration and dead == False:
                 if time % bigHitInterval == 0 and time != 0:
                         hitAction = 1
@@ -99,8 +131,10 @@ for i in range (0, iterations):
 
                 if hitAction == 1:
                         tankHp = tankHp - (attack(bigHit, bigHitMR, bigHitKE) - tankAbsShield)
+                        #print("Tank Hp " + repr(tankHp))
                 elif hitAction == 0:
                         tankHp = tankHp - (attack(basicHit, basicHitMR, basicHitKE) - tankAbsShield)
+                        #print("Tank Hp " + repr(tankHp))
                 if tankHp < lowestHp:
                         if tankHp <= 0:
                                 dead = True
@@ -116,22 +150,29 @@ for i in range (0, iterations):
                         bigHealAvail = time + bigHealInterval
                         if tankHp > tankMaxHp:
                                 tankHp = tankMaxHp
+                        #print("Big Heal " + repr(bigHeal))
+                        #print("Tank Hp " + repr(tankHp))
                 elif healAction == 1:
                         tankHp += basicHeal
                         if tankHp > tankMaxHp:
-                                tankHp = tankMaxHp		
+                                tankHp = tankMaxHp
+                        #print("Basic Heal " + repr(basicHeal))
+                        #print("Tank Hp " + repr(tankHp))
+                #elif healAction == 0:
+                        #print("No Heal ")
+                        #print("Tank Hp " + repr(tankHp))
 
                 if overHealAllowValue != 0:
-                        if tankHp < (tankMaxHp - (bigHeal - overHealAllowValue)) and time > bigHealInterval:
+                        if tankHp <= (tankMaxHp - (bigHeal - overHealAllowValue)) and time >= bigHealAvail:
                                 nextHealAction = 2
-                        elif tankHp < (tankMaxHp - (basicHeal - overHealAllowValue)):
+                        elif tankHp <= (tankMaxHp - (basicHeal - overHealAllowValue)):
                                 nextHealAction = 1
                         else:
                                 nextHealAction = 0
                 else:
-                        if tankHp < (tankMaxHp - (bigHeal * overHealAllowPercent)) and time > bigHealInterval:
+                        if tankHp <= (tankMaxHp - (bigHeal * overHealAllowPercent)) and time >= bigHealAvail:
                                 nextHealAction = 2
-                        elif tankHp < (tankMaxHp - (basicHeal * overHealAllowPercent)):
+                        elif tankHp <= (tankMaxHp - (basicHeal * overHealAllowPercent)):
                                 nextHealAction = 1
                         else:
                                 nextHealAction = 0
@@ -141,16 +182,13 @@ for i in range (0, iterations):
         elif lowestHp < lowestLowHp:
                 lowestLowHp = lowestHp
                 lowestArray.append(lowestHp)
-        time = 0
-        lowestHp = tankMaxHp
 
-averageLowest = 0
 for i in range (0, len(lowestArray)):
         averageLowest += lowestArray[i]
 if len(lowestArray) != 0:
         averageLowest = averageLowest / len(lowestArray)
-        lowestLowHp = 0
 else:
+        lowestLowHp = "dead"
         averageLowest = 0
 
 print("Number of deaths:" + repr(numDeaths))
