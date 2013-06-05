@@ -1,7 +1,7 @@
 import random
 import fileinput
 
-print("Kitru's Tank Simulator v. 1.0");
+print("Kitru's Tank Simulator v. 1.1");
 
 iterations = int(input("How many iterations:"))
 duration = int(input("How many GCDs duration for each:"))
